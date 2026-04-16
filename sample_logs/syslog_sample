@@ -1,0 +1,15 @@
+Apr 11 08:30:15 server kernel: usb 1-1: new device detected
+Apr 11 08:30:16 server cron[1234]: (root) INFO: starting job
+Apr 11 08:35:22 server sshd[5678]: Failed password for invalid user admin
+Apr 11 09:00:01 server kernel: WARNING: CPU temperature high
+Apr 11 09:00:01 server kernel: ERROR: thermal throttle occurred
+Apr 11 09:05:10 server sshd[5678]: error: Could not load host key
+Apr 11 09:05:10 server sshd[5678]: error: fatal: No supported key exchange algorithms
+Apr 11 09:10:45 server systemd[1]: Started Service X
+Apr 11 10:00:00 server kernel: ERROR: disk read failure
+Apr 11 10:00:01 server kernel: ERROR: disk read failure
+Apr 11 10:00:02 server kernel: ERROR: disk read failure
+Apr 11 10:00:03 server kernel: ERROR: disk read failure
+Apr 11 10:00:04 server kernel: ERROR: disk read failure
+Apr 11 10:00:05 server kernel: ERROR: disk read failure
+Apr 11 10:01:00 server app[9999]: WARNING: memory usage high
