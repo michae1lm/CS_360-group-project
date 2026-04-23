@@ -1,5 +1,8 @@
+# Compiler
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+# Flags
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 
+# Executable
 TARGET = log_analyzer
 SOURCES = main.cpp LogAnalyzer.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
