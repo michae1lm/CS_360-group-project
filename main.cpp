@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <cstring>
 
-// Flag set by signal handler to safely trigger report printing
+// Flag set by signal handler for safely triggering report printing
 volatile sig_atomic_t print_report_flag = 0;
 
 // Signal handler: only sets a flag
