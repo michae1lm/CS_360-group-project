@@ -61,7 +61,13 @@ This tool analyzes system log files (e.g., `/var/log/syslog`) to detect anomalie
 
 ```bash
 make
-./log_analyzer /var/log/syslog              # batch mode
-./log_analyzer --monitor /var/log/syslog    # real-time monitoring
-# Send SIGUSR1 to the parent PID to print a report
+
+# Batch mode
+./log_analyzer sample_logs/syslog_sample
+
+# Real-time monitoring
+./log_analyzer --monitor sample_logs/syslog_sample
+
+# In another terminal: trigger report
 kill -USR1 $(pgrep log_analyzer)
+```
