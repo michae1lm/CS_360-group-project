@@ -187,8 +187,15 @@ void LogAnalyzer::detectRepeatedMessages() const {
 // Prints summary report and detected anomalies
 void LogAnalyzer::printReport() const {
     size_t total, errors, warnings, info, other;
+    
     computeStatistics(total, errors, warnings, info, other);
 
+    if (total == 0) {
+        std::cout << "\n=== Log Analysis Report ===\n";
+        std::cout << "File: " << filename << "\n";
+        std::cout << "No valid log entries parsed.\n";
+        return;
+    }
     std::cout << "\n=== Log Analysis Report ===\n";
     std::cout << "File: " << filename << "\n";
     std::cout << "Total lines parsed: " << total << "\n";
