@@ -6,16 +6,14 @@
 #include <sys/wait.h>
 #include <cstring>
 
-// Flag set by signal handler for safely triggering report printing
+// flag set by signal handler
 volatile sig_atomic_t print_report_flag = 0;
 
-// Signal handler: only sets a flag
 void signal_handler(int sig) {
     if (sig == SIGUSR1)
         print_report_flag = 1;
 }
 
-// Prints usage information
 void printHelp() {
     std::cout << "Usage: ./log_analyzer [options] <logfile>\n"
               << "Options:\n"
@@ -23,7 +21,7 @@ void printHelp() {
               << "  -v, --verbose         Enable verbose output\n"
               << "  --csv <file>          Export report to CSV\n"
               << "  --repeat-threshold N  Set repeat detection threshold (default=5)\n"
-              << "  --monitor             Real-time monitoring (forks child, uses signals & pipe)\n";
+              << "  --monitor             Real-time monitoring\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -33,7 +31,7 @@ int main(int argc, char* argv[]) {
     int repeatThreshold = 5;
     bool monitorMode = false;
 
-    // Parse command-line arguments
+    // parse args
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "-h" || arg == "--help") {
@@ -63,14 +61,13 @@ int main(int argc, char* argv[]) {
     }
 
     if (monitorMode) {
-        // Set up SIGUSR1 handler
+        // setup signal handler
         struct sigaction sa;
         sa.sa_handler = signal_handler;
         sigemptyset(&sa.sa_mask);
         sa.sa_flags = SA_RESTART;
         sigaction(SIGUSR1, &sa, nullptr);
 
-        // Create pipe for IPC between parent and child
         int pipefd[2];
         if (pipe(pipefd) == -1) {
             perror("pipe");
@@ -84,18 +81,16 @@ int main(int argc, char* argv[]) {
         }
 
         if (pid == 0) {
-            // Child: redirect stdout to pipe and run tail -F
+            // child: run tail -F and send output to pipe
             close(pipefd[0]);
-            if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
-                perror("dup2");
-                return 1;
-            }
+            dup2(pipefd[1], STDOUT_FILENO);
             close(pipefd[1]);
+
             execlp("tail", "tail", "-F", logfile.c_str(), nullptr);
             perror("execlp");
             return 1;
         } else {
-            // Parent: read from pipe and process lines
+            // parent: read from pipe
             close(pipefd[1]);
             FILE* pipeRead = fdopen(pipefd[0], "r");
             if (!pipeRead) {
@@ -109,37 +104,42 @@ int main(int argc, char* argv[]) {
             size_t len = 0;
             ssize_t nread;
 
-            std::cout << "Monitoring " << logfile 
-                      << ". Send SIGUSR1 (kill -USR1 " << getpid()
-                      << ") to print report. Press Ctrl+C to exit.\n";
+            std::cout << "Monitoring " << logfile
+                      << " (kill -USR1 " << getpid()
+                      << " to print report)\n";
 
-            // Read incoming log lines continuously
-            while ((nread = getline(&line, &len, pipeRead)) != -1) {
-                if (line[nread-1] == '\n') line[nread-1] = '\0';
-                analyzer.parseLineFromString(line);
+            while (true) {
+                nread = getline(&line, &len, pipeRead);
 
-                // Print report when signal is received
+                // check signal flag
                 if (print_report_flag) {
                     analyzer.printReport();
                     print_report_flag = 0;
                 }
+
+                if (nread == -1) break;
+
+                if (nread > 0 && line[nread - 1] == '\n')
+                    line[nread - 1] = '\0';
+
+                analyzer.parseLineFromString(line);
             }
 
             free(line);
             fclose(pipeRead);
             wait(nullptr);
         }
+
     } else {
-        // Batch mode: process entire file at once
+        // batch mode
         LogAnalyzer analyzer(logfile, verbose, repeatThreshold);
-        if (!analyzer.parse()) {
+        if (!analyzer.parse())
             return 1;
-        }
+
         analyzer.printReport();
 
-        if (!csvFile.empty()) {
+        if (!csvFile.empty())
             analyzer.exportCSV(csvFile);
-        }
     }
 
     return 0;
