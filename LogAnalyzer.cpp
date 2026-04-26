@@ -111,8 +111,7 @@ std::time_t LogAnalyzer::parseTimestamp(const std::string& token) {
 }
 
 // Counts occurrences of each severity type
-void LogAnalyzer::computeStatistics(size_t& total, size_t& errors, size_t& warnings,
-                                    size_t& info, size_t& other) const {
+void LogAnalyzer::computeStatistics(size_t& total, size_t& errors, size_t& warnings, size_t& info, size_t& other) const {
     total = entries.size();
     errors = warnings = info = other = 0;
 
@@ -187,15 +186,8 @@ void LogAnalyzer::detectRepeatedMessages() const {
 // Prints summary report and detected anomalies
 void LogAnalyzer::printReport() const {
     size_t total, errors, warnings, info, other;
-    
     computeStatistics(total, errors, warnings, info, other);
 
-    if (total == 0) {
-        std::cout << "\n=== Log Analysis Report ===\n";
-        std::cout << "File: " << filename << "\n";
-        std::cout << "No valid log entries parsed.\n";
-        return;
-    }
     std::cout << "\n=== Log Analysis Report ===\n";
     std::cout << "File: " << filename << "\n";
     std::cout << "Total lines parsed: " << total << "\n";
@@ -212,6 +204,7 @@ void LogAnalyzer::printReport() const {
 // Exports parsed log entries to CSV format
 void LogAnalyzer::exportCSV(const std::string& csvFile) const {
     std::ofstream out(csvFile);
+
     if (!out) {
         std::cerr << "Error: Could not create CSV file " << csvFile << std::endl;
         return;
@@ -221,7 +214,10 @@ void LogAnalyzer::exportCSV(const std::string& csvFile) const {
 
     for (const auto& e : entries) {
         char buffer[20];
-        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&e.timestamp));
+        struct tm timeinfo;
+        // Use localtime_r for thread safety on Mac/Linux
+        localtime_r(&e.timestamp, &timeinfo); 
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
 
         out << "\"" << buffer << "\","
             << e.severity << ","
